@@ -2,8 +2,10 @@ name: Build Jar
 on: [push, workflow_dispatch] # workflow_dispatch가 있으면 버튼을 눌러 수동 빌드가 가능합니다.
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v4
     
@@ -26,3 +28,11 @@ jobs:
       with:
         name: WeaponMechanics-PR-Jars
         path: "**/build/libs/*.jar"
+    - name: Create GitHub Release and Upload JAR
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create ${{ github.ref_name }} \
+          **/build/libs/*.jar \
+          --title "Release ${{ github.ref_name }}" \
+          --notes "Automated cloud release for version ${{ github.ref_name }}."
